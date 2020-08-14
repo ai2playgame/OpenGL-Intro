@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include "Object.hpp"
 #include "Shape.hpp"
+#include "Window.hpp"
 
 // ---------------------------------------------------------------- //
 //	Prototype declaration
@@ -15,6 +16,14 @@ GLboolean printShaderInfoLog(GLuint shader, const char* str);
 GLboolean printProgramInfoLog(GLuint program);
 bool readShaderSource(const char* name, std::vector<GLchar>& buffer);
 GLuint loadProgram(const char* vert, const char* frag);
+
+void dprintGLcharVec(const std::vector<GLchar>& buf, const std::string& prefix = "") {
+	std::cout << '\n' << prefix << '\n';
+	for (const auto& c : buf) {
+		std::cout << c;
+	}
+	std::cout << std::endl;
+}
 
 // ---------------------------------------------------------------- //
 //	Global variables
@@ -47,23 +56,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // OpenGL CoreProfileを使用
 
 	// ウィンドウ作成
-	GLFWwindow* const window(glfwCreateWindow(640, 480, "Hello OpenGL!", nullptr, nullptr));
-	if (window == nullptr) {
-		std::cerr << "Can't create GLFW window." << std::endl;
-		return 1;
-	}
-	// 作ったウィンドウをOpenGLの処理対象に変える
-	glfwMakeContextCurrent(window);
-
-	// GLEWを初期化する
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK) {
-		std::cerr << "Can't initialize GLEW." << std::endl;
-		return 1;
-	}
-
-	// 垂直同期のタイミングを待つ
-	glfwSwapInterval(1);
+	Window window;
 
 	// 背景色を指定
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
@@ -71,23 +64,32 @@ int main() {
 	// シェーダプログラムオブジェクトを作成
 	const GLuint program(loadProgram("point.vert", "point.frag"));
 
+	// uniform変数の場所を取得
+	const GLint sizeLocation(glGetUniformLocation(program, "size"));
+	const GLint scaleLocation(glGetUniformLocation(program, "scale"));
+	const GLint locationLocation(glGetUniformLocation(program, "location"));
+
 	// 図形データを作成
-	auto shapePtr = std::make_unique<const Shape>(2, 4, rectangleVertices);
+	std::unique_ptr<const Shape> shapePtr(new Shape(2, 4, rectangleVertices));
 
 	// メインループ
-	while (glfwWindowShouldClose(window) == GL_FALSE)
+	while (window.shoudClose() == GL_FALSE)
 	{
 		// ウィンドウを消去
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// シェーダプログラムを使用する
+		glUseProgram(program);
+	
+		// uniform変数の値を設定
+		glUniform2fv(sizeLocation, 1, window.getSize());
+		glUniform1f(scaleLocation, window.getScaleWorldToDev());
+		glUniform2fv(locationLocation, 1, window.getLocation());
+
 		// ここで描画処理
 		shapePtr->draw();
 		
-		// カラーバッファを入れ替える
-		glfwSwapBuffers(window);
-
-		// イベントを取り出す
-		glfwWaitEvents();
+		window.swapBuffers();
 	}
 }
 
@@ -99,44 +101,45 @@ int main() {
 /// <returns></returns>
 GLuint createProgram(const char* vsrc, const char* fsrc)
 {
-	// 空のプログラムオブジェクトを作成
+	// 空のプログラムオブジェクトを作成する
 	const GLuint program(glCreateProgram());
-	if (vsrc != nullptr) {
-		// 頂点シェーダのシェーダオブジェクトを作成
-		const GLuint vobj(glCreateShader(GL_VERTEX_SHADER));
-		glShaderSource(vobj, 1, &vsrc, nullptr);
-		glCompileShader(vobj);
 
-		// 頂点シェーダのシェーダオブジェクトをプログラムオブジェクトに組み込む
-		if (printShaderInfoLog(vobj, "vertex shader")) {
-			glAttachShader(program, vobj);
-		}
-		glDeleteShader(vobj);
+	if (vsrc != nullptr)
+	{
+	// バーテックスシェーダのシェーダオブジェクトを作成する
+	const GLuint vobj(glCreateShader(GL_VERTEX_SHADER));
+	glShaderSource(vobj, 1, &vsrc, NULL);
+	glCompileShader(vobj);
+
+	// バーテックスシェーダのシェーダオブジェクトをプログラムオブジェクトに組み込む
+	if (printShaderInfoLog(vobj, "vertex shader"))
+	  glAttachShader(program, vobj);
+	glDeleteShader(vobj);
 	}
 
-	if (fsrc != nullptr) {
-		// フラグメントシェーダのシェーダオブジェクトを作成
-		const GLuint fobj(glCreateShader(GL_FRAGMENT_SHADER));
-		glShaderSource(fobj, 1, &fsrc, nullptr);
-		glCompileShader(fobj);
+	if (fsrc != nullptr)
+	{
+	// フラグメントシェーダのシェーダオブジェクトを作成する
+	const GLuint fobj(glCreateShader(GL_FRAGMENT_SHADER));
+	glShaderSource(fobj, 1, &fsrc, NULL);
+	glCompileShader(fobj);
 
-		// フラグメントシェーダのシェーダオブジェクトをプログラムオブジェクトに組み込む
-		if (printShaderInfoLog(fobj, "fragment shader")) {
-			glAttachShader(program, fobj);
-		}
-		glDeleteShader(fobj);
+	// フラグメントシェーダのシェーダオブジェクトをプログラムオブジェクトに組み込む
+	if (printShaderInfoLog(fobj, "fragment shader"))
+	  glAttachShader(program, fobj);
+	glDeleteShader(fobj);
 	}
-	
-	// プログラムオブジェクトをリンク
+
+	// プログラムオブジェクトをリンクする
 	glBindAttribLocation(program, 0, "position");
-	glBindFragDataLocation(program, 0, "fragmnet");
+	glBindFragDataLocation(program, 0, "fragment");
 	glLinkProgram(program);
 
-	if (printProgramInfoLog(program)) {
-		return program;
-	}
-	
-	// プログラムオブジェクトの作成に失敗した場合0を返す
+	// 作成したプログラムオブジェクトを返す
+	if (printProgramInfoLog(program))
+	return program;
+
+	// プログラムオブジェクトが作成できなければ 0 を返す
 	glDeleteProgram(program);
 	return 0;
 }
@@ -194,6 +197,7 @@ GLboolean printProgramInfoLog(GLuint program)
 bool readShaderSource(const char* name, std::vector<GLchar>& buffer)
 {
 	if (name == nullptr) { return false; }
+
 	// シェーダソース・ファイルを開く
 	std::ifstream file(name, std::ios::binary);
 	if (file.fail()) {
@@ -234,7 +238,7 @@ GLuint loadProgram(const char* vert, const char* frag)
 	const bool vstat(readShaderSource(vert, vsrc));
 	std::vector<GLchar> fsrc;
 	const bool fstat(readShaderSource(frag, fsrc));
-
+	
 	// プログラムオブジェクトを作る
 	return vstat && fstat ? createProgram(vsrc.data(), fsrc.data()) : 0;
 }
