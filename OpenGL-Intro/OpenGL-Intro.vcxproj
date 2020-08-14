@@ -150,6 +150,10 @@
     <None Include="point.frag" />
     <None Include="point.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Object.hpp" />
+    <ClInclude Include="Shape.hpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -4,12 +4,30 @@
 #include <vector>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "Object.hpp"
+#include "Shape.hpp"
 
+// ---------------------------------------------------------------- //
+//	Prototype declaration
+// ---------------------------------------------------------------- //
 GLuint createProgram(const char* vsrc, const char* fsrc);
 GLboolean printShaderInfoLog(GLuint shader, const char* str);
 GLboolean printProgramInfoLog(GLuint program);
 bool readShaderSource(const char* name, std::vector<GLchar>& buffer);
 GLuint loadProgram(const char* vert, const char* frag);
+
+// ---------------------------------------------------------------- //
+//	Global variables
+// ---------------------------------------------------------------- //
+
+// 描画する矩形の頂点座標
+constexpr Object::Vertex rectangleVertices[] =
+{
+	{ -0.5f, -0.5f },
+	{  0.5f, -0.5f },
+	{  0.5f,  0.5f },
+	{ -0.5f,  0.5f },
+};
 
 int main() {
 	// GLFWの初期化
@@ -50,7 +68,11 @@ int main() {
 	// 背景色を指定
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
+	// シェーダプログラムオブジェクトを作成
 	const GLuint program(loadProgram("point.vert", "point.frag"));
+
+	// 図形データを作成
+	auto shapePtr = std::make_unique<const Shape>(2, 4, rectangleVertices);
 
 	// メインループ
 	while (glfwWindowShouldClose(window) == GL_FALSE)
@@ -59,6 +81,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// ここで描画処理
+		shapePtr->draw();
 		
 		// カラーバッファを入れ替える
 		glfwSwapBuffers(window);

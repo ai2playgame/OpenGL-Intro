@@ -8,4 +8,8 @@
     <None Include="point.vert" />
     <None Include="point.frag" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Object.hpp" />
+    <ClInclude Include="Shape.hpp" />
+  </ItemGroup>
 </Project>
