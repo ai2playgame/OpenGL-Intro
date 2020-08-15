@@ -12,5 +12,6 @@
     <ClInclude Include="Object.hpp" />
     <ClInclude Include="Shape.hpp" />
     <ClInclude Include="Window.hpp" />
+    <ClInclude Include="Matrix.hpp" />
   </ItemGroup>
 </Project>

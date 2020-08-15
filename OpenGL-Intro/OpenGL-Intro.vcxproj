@@ -151,6 +151,7 @@
     <None Include="point.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Matrix.hpp" />
     <ClInclude Include="Object.hpp" />
     <ClInclude Include="Shape.hpp" />
     <ClInclude Include="Window.hpp" />

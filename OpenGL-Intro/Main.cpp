@@ -4,9 +4,9 @@
 #include <vector>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "Object.hpp"
 #include "Shape.hpp"
 #include "Window.hpp"
+#include "Matrix.hpp"
 
 // ---------------------------------------------------------------- //
 //	Prototype declaration
@@ -16,14 +16,6 @@ GLboolean printShaderInfoLog(GLuint shader, const char* str);
 GLboolean printProgramInfoLog(GLuint program);
 bool readShaderSource(const char* name, std::vector<GLchar>& buffer);
 GLuint loadProgram(const char* vert, const char* frag);
-
-void dprintGLcharVec(const std::vector<GLchar>& buf, const std::string& prefix = "") {
-	std::cout << '\n' << prefix << '\n';
-	for (const auto& c : buf) {
-		std::cout << c;
-	}
-	std::cout << std::endl;
-}
 
 // ---------------------------------------------------------------- //
 //	Global variables
@@ -65,9 +57,8 @@ int main() {
 	const GLuint program(loadProgram("point.vert", "point.frag"));
 
 	// uniform変数の場所を取得
-	const GLint sizeLocation(glGetUniformLocation(program, "size"));
-	const GLint scaleLocation(glGetUniformLocation(program, "scale"));
-	const GLint locationLocation(glGetUniformLocation(program, "location"));
+	const GLint modelViewLocation(glGetUniformLocation(program, "modelView"));
+	const GLint projectionLocation(glGetUniformLocation(program, "projection"));
 
 	// 図形データを作成
 	std::unique_ptr<const Shape> shapePtr(new Shape(2, 4, rectangleVertices));
@@ -80,11 +71,44 @@ int main() {
 
 		// シェーダプログラムを使用する
 		glUseProgram(program);
+
+		// 透視投影変換行列を求める
+		const GLfloat* const size(window.getSize());
+		// const GLfloat scale(window.getScaleWorldToDev() * 2.0f);
+		// const GLfloat w(size[0] / scale), h(size[1] / scale);
+		// 直行投影変換行列
+		// const Matrix projection(Matrix::orthogonal(-w, w, -h, h, 1.0f, 10.0f));
+		// 透視投影変換行列
+		// const Matrix projection(Matrix::frustum(-w, w, -h, h, 1.0f, 10.0f));
 	
-		// uniform変数の値を設定
-		glUniform2fv(sizeLocation, 1, window.getSize());
-		glUniform1f(scaleLocation, window.getScaleWorldToDev());
-		glUniform2fv(locationLocation, 1, window.getLocation());
+		// 拡大縮小の変換行列を求める
+		// const Matrix scaling(Matrix::scale(scale / size[0], scale / size[1], 1.0f));
+
+		// 平行移動の変換行列を求める
+		// const GLfloat* const position(window.getLocation());
+		// const Matrix translation(Matrix::translate(position[0], position[1], 0.0f));
+
+		const GLfloat fovy(window.getScaleWorldToDev() * 0.01f);
+		const GLfloat aspect(size[0] / size[1]);
+		const Matrix projection(Matrix::perspective(fovy, aspect, 1.0f, 10.0f));
+
+		// モデル変換行列を求める
+		const GLfloat* const location(window.getLocation());
+		const Matrix model(Matrix::translate(location[0], location[1], 0.0f));
+
+		// ビュー変換行列を求める
+		const Matrix view(Matrix::lookat(
+			3.0f, 4.0f, 5.0f,		// 視点座標
+			0.0f, 0.0f, 0.0f,		// 注視点座標
+			0.0f, 1.0f, 0.0f		// 上方向のベクトル
+		));
+
+		// モデルビュー変換行列を求める
+		const Matrix modelView(view * model);
+
+		// uniform変数に変換行列を設定
+		glUniformMatrix4fv(modelViewLocation, 1, GL_FALSE, modelView.data());
+		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, projection.data());
 
 		// ここで描画処理
 		shapePtr->draw();
