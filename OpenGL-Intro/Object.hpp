@@ -19,7 +19,7 @@ public:
 	// 頂点属性
 	struct Vertex {
 		GLfloat position[3]; // 3次元座標 
-		GLfloat color[3];	 // 色
+		GLfloat normal[3];	 // 法線（xyz）
 	};
 
 	Object(GLint size, GLsizei vertexCount, const Vertex* vertex, GLsizei indexCount = 0, const GLuint* index = nullptr) {

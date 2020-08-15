@@ -65,7 +65,7 @@ public:
 	// カラーバッファを入れ替えて、イベントも取り出す
 	void swapBuffers() {
 		glfwSwapBuffers(_window);
-		glfwWaitEvents();
+		glfwPollEvents();
 
 		// マウスの左ボタンが押されていればマウスカーソルの位置をlocationに代入する
 		if (glfwGetMouseButton(_window, GLFW_MOUSE_BUTTON_1) != GLFW_RELEASE) {

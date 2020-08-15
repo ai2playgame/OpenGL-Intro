@@ -21,55 +21,67 @@ GLuint loadProgram(const char* vert, const char* frag);
 //	Global variables
 // ---------------------------------------------------------------- //
 
-// 面ごとに色を変えた六面体の頂点属性
+// 面ごとに法線を変えた六面体の頂点属性
 constexpr Object::Vertex solidCubeVertex[] =
 {
   // 左
-  { -1.0f, -1.0f, -1.0f,  0.1f,  0.8f,  0.1f },
-  { -1.0f, -1.0f,  1.0f,  0.1f,  0.8f,  0.1f },
-  { -1.0f,  1.0f,  1.0f,  0.1f,  0.8f,  0.1f },
-  { -1.0f,  1.0f, -1.0f,  0.1f,  0.8f,  0.1f },
+  { -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f },
+  { -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f },
+  { -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f },
+  { -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f },
+  { -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f },
+  { -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f },
 
   // 裏
-  {  1.0f, -1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
-  { -1.0f, -1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
-  { -1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
-  {  1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
+  {  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
+  { -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
+  { -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
+  {  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
+  { -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
+  {  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
 
   // 下
-  { -1.0f, -1.0f, -1.0f,  0.1f,  0.8f,  0.8f },
-  {  1.0f, -1.0f, -1.0f,  0.1f,  0.8f,  0.8f },
-  {  1.0f, -1.0f,  1.0f,  0.1f,  0.8f,  0.8f },
-  { -1.0f, -1.0f,  1.0f,  0.1f,  0.8f,  0.8f },
+  { -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f },
+  {  1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f },
+  {  1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f },
+  { -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f },
+  {  1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f },
+  { -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f },
 
   // 右
-  {  1.0f, -1.0f,  1.0f,  0.1f,  0.1f,  0.8f },
-  {  1.0f, -1.0f, -1.0f,  0.1f,  0.1f,  0.8f },
-  {  1.0f,  1.0f, -1.0f,  0.1f,  0.1f,  0.8f },
-  {  1.0f,  1.0f,  1.0f,  0.1f,  0.1f,  0.8f },
+  {  1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f },
+  {  1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f },
+  {  1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f },
+  {  1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f },
+  {  1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f },
+  {  1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f },
 
   // 上
-  { -1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.1f },
-  { -1.0f,  1.0f,  1.0f,  0.8f,  0.1f,  0.1f },
-  {  1.0f,  1.0f,  1.0f,  0.8f,  0.1f,  0.1f },
-  {  1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.1f },
+  { -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f },
+  { -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f },
+  {  1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f },
+  { -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f },
+  {  1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f },
+  {  1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f },
 
   // 前
-  { -1.0f, -1.0f,  1.0f,  0.8f,  0.8f,  0.1f },
-  {  1.0f, -1.0f,  1.0f,  0.8f,  0.8f,  0.1f },
-  {  1.0f,  1.0f,  1.0f,  0.8f,  0.8f,  0.1f },
-  { -1.0f,  1.0f,  1.0f,  0.8f,  0.8f,  0.1f }
+  { -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
+  {  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
+  {  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
+  { -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
+  {  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
+  { -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f }
 };
 
 // 六面体の面を塗りつぶす三角形の頂点のインデックス
 constexpr GLuint solidCubeIndex[] =
 {
-   0,  1,  2,  0,  2,  3, // 左
-   4,  5,  6,  4,  6,  7, // 裏
-   8,  9, 10,  8, 10, 11, // 下
-  12, 13, 14, 12, 14, 15, // 右
-  16, 17, 18, 16, 18, 19, // 上
-  20, 21, 22, 20, 22, 23  // 前
+   0,  1,  2,  3,  4,  5, // 左
+   6,  7,  8,  9, 10, 11, // 裏
+  12, 13, 14, 15, 16, 17, // 下
+  18, 19, 20, 21, 22, 23, // 右
+  24, 25, 26, 27, 28, 29, // 上
+  30, 31, 32, 33, 34, 35  // 前
 };
 
 // ---------------------------------------------------------------- //
@@ -98,21 +110,35 @@ int main() {
 	// 背景色を指定
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
+	// 背面カリングを有効化
+	glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+
+	// デプスバッファを有効化
+	glClearDepth(1.0);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_DEPTH_TEST);
+
 	// シェーダプログラムオブジェクトを作成
 	const GLuint program(loadProgram("point.vert", "point.frag"));
 
 	// uniform変数の場所を取得
 	const GLint modelViewLocation(glGetUniformLocation(program, "modelView"));
 	const GLint projectionLocation(glGetUniformLocation(program, "projection"));
+	const GLint normalMatrixLocation(glGetUniformLocation(program, "normalMatrix"));
 
 	// 図形データを作成
-	std::unique_ptr<const Shape> shapePtr(new SolidShapeIndex(3, 24, solidCubeVertex, 36, solidCubeIndex));
+	std::unique_ptr<const Shape> shapePtr(new SolidShapeIndex(3, 36, solidCubeVertex, 36, solidCubeIndex));
+
+	// タイマーを0に設定
+	glfwSetTime(0.0);
 
 	// メインループ
 	while (window.shoudClose() == GL_FALSE)
 	{
 		// ウィンドウを消去
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// シェーダプログラムを使用する
 		glUseProgram(program);
@@ -139,7 +165,8 @@ int main() {
 
 		// モデル変換行列を求める
 		const GLfloat* const location(window.getLocation());
-		const Matrix model(Matrix::translate(location[0], location[1], 0.0f));
+		const Matrix r(Matrix::rotate(static_cast<GLfloat>(glfwGetTime()), 0.0f, 1.0f, 0.0f));
+		const Matrix model(Matrix::translate(location[0], location[1], 0.0f) * r);
 
 		// ビュー変換行列を求める
 		const Matrix view(Matrix::lookat(
@@ -148,16 +175,35 @@ int main() {
 			0.0f, 1.0f, 0.0f		// 上方向のベクトル
 		));
 
+		// 法線ベクトル変換行列の格納先
+		GLfloat normalMatrix[9];
+
 		// モデルビュー変換行列を求める
 		const Matrix modelView(view * model);
+
+		// 法線ベクトル変換行列を求める
+		modelView.getNormalMatrix(normalMatrix);
 
 		// uniform変数に変換行列を設定
 		glUniformMatrix4fv(modelViewLocation, 1, GL_FALSE, modelView.data());
 		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, projection.data());
+		glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, normalMatrix);
 
 		// ここで描画処理
 		shapePtr->draw();
 		
+		// 2つ目のモデルビュー行列を作成
+		const Matrix modelView1(modelView * Matrix::translate(0.0f, 0.0f, 2.5f));
+
+		// 2つめの法線ベクトル変換行列を求める
+		modelView1.getNormalMatrix(normalMatrix);
+
+		glUniformMatrix4fv(modelViewLocation, 1, GL_FALSE, modelView1.data());
+		glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, normalMatrix);
+		
+		// 2つめのShapeの描画
+		shapePtr->draw();
+
 		window.swapBuffers();
 	}
 }
@@ -201,7 +247,7 @@ GLuint createProgram(const char* vsrc, const char* fsrc)
 
 	// プログラムオブジェクトをリンクする
 	glBindAttribLocation(program, 0, "position");
-	glBindAttribLocation(program, 1, "color");
+	glBindAttribLocation(program, 1, "normal");
 	glBindFragDataLocation(program, 0, "fragment");
 	glLinkProgram(program);
 
