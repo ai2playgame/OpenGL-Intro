@@ -4,9 +4,9 @@
 #include <vector>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "ShapeIndex.hpp"
 #include "Window.hpp"
 #include "Matrix.hpp"
+#include "SolidShapeIndex.hpp"
 
 // ---------------------------------------------------------------- //
 //	Prototype declaration
@@ -21,37 +21,60 @@ GLuint loadProgram(const char* vert, const char* frag);
 //	Global variables
 // ---------------------------------------------------------------- //
 
-// 六面体の頂点の位置
-constexpr Object::Vertex cubeVertices[] =
+// 面ごとに色を変えた六面体の頂点属性
+constexpr Object::Vertex solidCubeVertex[] =
 {
-  { -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f },  // (0)
-  { -1.0f, -1.0f,  1.0f, 0.0f, 0.0f, 0.8f },  // (1)
-  { -1.0f,  1.0f,  1.0f, 0.0f, 0.8f, 0.0f },  // (2)
-  { -1.0f,  1.0f, -1.0f, 0.0f, 0.8f, 0.8f },  // (3)
-  {  1.0f,  1.0f, -1.0f, 0.8f, 0.0f, 0.0f },  // (4)
-  {  1.0f, -1.0f, -1.0f, 0.8f, 0.0f, 0.8f },  // (5)
-  {  1.0f, -1.0f,  1.0f, 0.8f, 0.8f, 0.0f },  // (6)
-  {  1.0f,  1.0f,  1.0f, 0.8f, 0.8f, 0.8f }   // (7)
+  // 左
+  { -1.0f, -1.0f, -1.0f,  0.1f,  0.8f,  0.1f },
+  { -1.0f, -1.0f,  1.0f,  0.1f,  0.8f,  0.1f },
+  { -1.0f,  1.0f,  1.0f,  0.1f,  0.8f,  0.1f },
+  { -1.0f,  1.0f, -1.0f,  0.1f,  0.8f,  0.1f },
+
+  // 裏
+  {  1.0f, -1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
+  { -1.0f, -1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
+  { -1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
+  {  1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.8f },
+
+  // 下
+  { -1.0f, -1.0f, -1.0f,  0.1f,  0.8f,  0.8f },
+  {  1.0f, -1.0f, -1.0f,  0.1f,  0.8f,  0.8f },
+  {  1.0f, -1.0f,  1.0f,  0.1f,  0.8f,  0.8f },
+  { -1.0f, -1.0f,  1.0f,  0.1f,  0.8f,  0.8f },
+
+  // 右
+  {  1.0f, -1.0f,  1.0f,  0.1f,  0.1f,  0.8f },
+  {  1.0f, -1.0f, -1.0f,  0.1f,  0.1f,  0.8f },
+  {  1.0f,  1.0f, -1.0f,  0.1f,  0.1f,  0.8f },
+  {  1.0f,  1.0f,  1.0f,  0.1f,  0.1f,  0.8f },
+
+  // 上
+  { -1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.1f },
+  { -1.0f,  1.0f,  1.0f,  0.8f,  0.1f,  0.1f },
+  {  1.0f,  1.0f,  1.0f,  0.8f,  0.1f,  0.1f },
+  {  1.0f,  1.0f, -1.0f,  0.8f,  0.1f,  0.1f },
+
+  // 前
+  { -1.0f, -1.0f,  1.0f,  0.8f,  0.8f,  0.1f },
+  {  1.0f, -1.0f,  1.0f,  0.8f,  0.8f,  0.1f },
+  {  1.0f,  1.0f,  1.0f,  0.8f,  0.8f,  0.1f },
+  { -1.0f,  1.0f,  1.0f,  0.8f,  0.8f,  0.1f }
 };
 
-// 六面体の稜線の両端点のインデックス
-constexpr GLuint wireCubeIndex[] =
+// 六面体の面を塗りつぶす三角形の頂点のインデックス
+constexpr GLuint solidCubeIndex[] =
 {
-  1, 0, // (a)
-  2, 7, // (b)
-  3, 0, // (c)
-  4, 7, // (d)
-  5, 0, // (e)
-  6, 7, // (f)
-  1, 2, // (g)
-  2, 3, // (h)
-  3, 4, // (i)
-  4, 5, // (j)
-  5, 6, // (k)
-  6, 1  // (l)
+   0,  1,  2,  0,  2,  3, // 左
+   4,  5,  6,  4,  6,  7, // 裏
+   8,  9, 10,  8, 10, 11, // 下
+  12, 13, 14, 12, 14, 15, // 右
+  16, 17, 18, 16, 18, 19, // 上
+  20, 21, 22, 20, 22, 23  // 前
 };
 
-
+// ---------------------------------------------------------------- //
+//	Function definition
+// ---------------------------------------------------------------- //
 int main() {
 	// GLFWの初期化
 	if (glfwInit() == GL_FALSE) {
@@ -83,7 +106,7 @@ int main() {
 	const GLint projectionLocation(glGetUniformLocation(program, "projection"));
 
 	// 図形データを作成
-	std::unique_ptr<const Shape> shapePtr(new ShapeIndex(3, 8, cubeVertices, 24, wireCubeIndex));
+	std::unique_ptr<const Shape> shapePtr(new SolidShapeIndex(3, 24, solidCubeVertex, 36, solidCubeIndex));
 
 	// メインループ
 	while (window.shoudClose() == GL_FALSE)
