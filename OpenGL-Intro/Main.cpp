@@ -4,7 +4,7 @@
 #include <vector>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "Shape.hpp"
+#include "ShapeIndex.hpp"
 #include "Window.hpp"
 #include "Matrix.hpp"
 
@@ -21,14 +21,36 @@ GLuint loadProgram(const char* vert, const char* frag);
 //	Global variables
 // ---------------------------------------------------------------- //
 
-// 描画する矩形の頂点座標
-constexpr Object::Vertex rectangleVertices[] =
+// 六面体の頂点の位置
+constexpr Object::Vertex cubeVertices[] =
 {
-	{ -0.5f, -0.5f },
-	{  0.5f, -0.5f },
-	{  0.5f,  0.5f },
-	{ -0.5f,  0.5f },
+  { -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f },  // (0)
+  { -1.0f, -1.0f,  1.0f, 0.0f, 0.0f, 0.8f },  // (1)
+  { -1.0f,  1.0f,  1.0f, 0.0f, 0.8f, 0.0f },  // (2)
+  { -1.0f,  1.0f, -1.0f, 0.0f, 0.8f, 0.8f },  // (3)
+  {  1.0f,  1.0f, -1.0f, 0.8f, 0.0f, 0.0f },  // (4)
+  {  1.0f, -1.0f, -1.0f, 0.8f, 0.0f, 0.8f },  // (5)
+  {  1.0f, -1.0f,  1.0f, 0.8f, 0.8f, 0.0f },  // (6)
+  {  1.0f,  1.0f,  1.0f, 0.8f, 0.8f, 0.8f }   // (7)
 };
+
+// 六面体の稜線の両端点のインデックス
+constexpr GLuint wireCubeIndex[] =
+{
+  1, 0, // (a)
+  2, 7, // (b)
+  3, 0, // (c)
+  4, 7, // (d)
+  5, 0, // (e)
+  6, 7, // (f)
+  1, 2, // (g)
+  2, 3, // (h)
+  3, 4, // (i)
+  4, 5, // (j)
+  5, 6, // (k)
+  6, 1  // (l)
+};
+
 
 int main() {
 	// GLFWの初期化
@@ -61,7 +83,7 @@ int main() {
 	const GLint projectionLocation(glGetUniformLocation(program, "projection"));
 
 	// 図形データを作成
-	std::unique_ptr<const Shape> shapePtr(new Shape(2, 4, rectangleVertices));
+	std::unique_ptr<const Shape> shapePtr(new ShapeIndex(3, 8, cubeVertices, 24, wireCubeIndex));
 
 	// メインループ
 	while (window.shoudClose() == GL_FALSE)
@@ -156,6 +178,7 @@ GLuint createProgram(const char* vsrc, const char* fsrc)
 
 	// プログラムオブジェクトをリンクする
 	glBindAttribLocation(program, 0, "position");
+	glBindAttribLocation(program, 1, "color");
 	glBindFragDataLocation(program, 0, "fragment");
 	glLinkProgram(program);
 

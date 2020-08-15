@@ -13,5 +13,6 @@
     <ClInclude Include="Shape.hpp" />
     <ClInclude Include="Window.hpp" />
     <ClInclude Include="Matrix.hpp" />
+    <ClInclude Include="ShapeIndex.hpp" />
   </ItemGroup>
 </Project>

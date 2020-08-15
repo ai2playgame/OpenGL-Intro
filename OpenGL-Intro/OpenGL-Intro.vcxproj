@@ -154,6 +154,7 @@
     <ClInclude Include="Matrix.hpp" />
     <ClInclude Include="Object.hpp" />
     <ClInclude Include="Shape.hpp" />
+    <ClInclude Include="ShapeIndex.hpp" />
     <ClInclude Include="Window.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

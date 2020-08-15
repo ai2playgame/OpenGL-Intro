@@ -9,13 +9,13 @@ private:
 protected:
 	const GLsizei _vertexCount;
 public:
-	Shape(GLint size, GLsizei vertexCount, const Object::Vertex* vertex) 
-		: _object(new Object(size, vertexCount, vertex))
+	Shape(GLint size, GLsizei vertexCount, const Object::Vertex* vertex, GLsizei indexCount = 0, const GLuint* index = nullptr)
+		: _object(new Object(size, vertexCount, vertex, indexCount, index))
 		, _vertexCount(vertexCount)
 	{
 	}
 
-	virtual void draw() const final {
+	void draw() const {
 		// 頂点配列オブジェクトを結合する
 		_object->bind();
 
