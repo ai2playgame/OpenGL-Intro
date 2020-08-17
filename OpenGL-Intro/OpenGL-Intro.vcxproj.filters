@@ -15,5 +15,8 @@
     <ClInclude Include="Matrix.hpp" />
     <ClInclude Include="ShapeIndex.hpp" />
     <ClInclude Include="SolidShapeIndex.hpp" />
+    <ClInclude Include="Vector.hpp" />
+    <ClInclude Include="Material.hpp" />
+    <ClInclude Include="Uniform.hpp" />
   </ItemGroup>
 </Project>

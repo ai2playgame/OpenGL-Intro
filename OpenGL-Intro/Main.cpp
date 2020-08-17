@@ -2,11 +2,15 @@
 #include <cstdlib>
 #include <fstream>
 #include <vector>
+#include <cmath>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "Window.hpp"
 #include "Matrix.hpp"
 #include "SolidShapeIndex.hpp"
+#include "Vector.hpp"
+#include "Uniform.hpp"
+#include "Material.hpp"
 
 // ---------------------------------------------------------------- //
 //	Prototype declaration
@@ -21,57 +25,6 @@ GLuint loadProgram(const char* vert, const char* frag);
 //	Global variables
 // ---------------------------------------------------------------- //
 
-// 面ごとに法線を変えた六面体の頂点属性
-constexpr Object::Vertex solidCubeVertex[] =
-{
-  // 左
-  { -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f },
-  { -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f },
-  { -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f },
-  { -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f },
-  { -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f },
-  { -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f },
-
-  // 裏
-  {  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
-  { -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
-  { -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
-  {  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
-  { -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
-  {  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f },
-
-  // 下
-  { -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f },
-  {  1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f },
-  {  1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f },
-  { -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f },
-  {  1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f },
-  { -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f },
-
-  // 右
-  {  1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f },
-  {  1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f },
-  {  1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f },
-  {  1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f },
-  {  1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f },
-  {  1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f },
-
-  // 上
-  { -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f },
-  { -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f },
-  {  1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f },
-  { -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f },
-  {  1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f },
-  {  1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f },
-
-  // 前
-  { -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
-  {  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
-  {  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
-  { -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
-  {  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f },
-  { -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f }
-};
 
 // 六面体の面を塗りつぶす三角形の頂点のインデックス
 constexpr GLuint solidCubeIndex[] =
@@ -127,9 +80,76 @@ int main() {
 	const GLint modelViewLocation(glGetUniformLocation(program, "modelView"));
 	const GLint projectionLocation(glGetUniformLocation(program, "projection"));
 	const GLint normalMatrixLocation(glGetUniformLocation(program, "normalMatrix"));
+	const GLint LposLocation(glGetUniformLocation(program, "Lpos"));
+	const GLint LambLocation(glGetUniformLocation(program, "Lamb"));
+	const GLint LdiffLocation(glGetUniformLocation(program, "Ldiff"));
+	const GLint LspecLocation(glGetUniformLocation(program, "Lspec"));
+
+	// uniform blockの場所を取得する
+	const GLint materialLocation(glGetUniformBlockIndex(program, "Material"));
+
+	// uniform blockの場所を0版の結合ポイントに結びつける
+	glUniformBlockBinding(program, materialLocation, 0);
+
+	// 球の分割数を設定
+	const int slices(16), stacks(8);
+
+	// 頂点属性（頂点座標・法線）を作る
+	std::vector<Object::Vertex> solidSphereVertex;
+
+	for (int j = 0; j <= stacks; ++j) {
+		const float t(static_cast<float>(j) / static_cast<float>(stacks));
+		const float y(cos(3.141593f * t)), r(sin(3.141593f * t));
+		for (int i = 0; i <= slices; ++i) {
+			const float s(static_cast<float>(i) / static_cast<float>(slices));
+			const float z(r * cos(6.283185f * s)), x(r * sin(6.283185f * s));
+
+			const Object::Vertex v = { x, y, z, x, y, z };
+			solidSphereVertex.emplace_back(v);
+		}
+	}
+
+	// 頂点インデックス配列を作成
+	std::vector<GLuint> solidSphereIndex;
+	for (int j = 0; j < stacks; ++j) {
+		const int k((slices + 1) * j);
+		for (int i = 0; i < slices; ++i) {
+			const GLuint k0(k + i);
+			const GLuint k1(k0 + 1);
+			const GLuint k2(k1 + slices);
+			const GLuint k3(k2 + 1);
+			
+			// 左下の三角形のインデックス
+			solidSphereIndex.push_back(k0);
+			solidSphereIndex.push_back(k2);
+			solidSphereIndex.push_back(k3);
+			// 左上の三角形のインデックス
+			solidSphereIndex.push_back(k0);
+			solidSphereIndex.push_back(k3);
+			solidSphereIndex.push_back(k1);
+		}
+	}
 
 	// 図形データを作成
-	std::unique_ptr<const Shape> shapePtr(new SolidShapeIndex(3, 36, solidCubeVertex, 36, solidCubeIndex));
+	std::unique_ptr<const Shape> shapePtr(new SolidShapeIndex(3,
+		static_cast<GLsizei>(solidSphereVertex.size()), solidSphereVertex.data(),
+		static_cast<GLsizei>(solidSphereIndex.size()), solidSphereIndex.data()));
+
+	// 光源情報
+	static constexpr int Lcount(2);
+	static constexpr Vector Lpos[] = { 0.0f, 0.0f, 5.0f, 1.0f, 8.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr GLfloat Lamb[] = { 0.2f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f };
+	static constexpr GLfloat Ldiff[] = { 1.0f, 0.5f, 0.5f, 0.9f, 0.9f, 0.9f };
+	static constexpr GLfloat Lspec[] = { 1.0f, 0.5f, 0.5f, 0.9f, 0.9f, 0.9f };
+
+	// マテリアル情報
+	static constexpr Material color[] =
+	{
+		{ 0.6f, 0.6f, 0.2f,  0.6f, 0.6f, 0.2f,  0.3f, 0.3f, 0.3f,  30.0f },
+		{ 0.1f, 0.1f, 0.5f,  0.1f, 0.1f, 0.5f,  0.4f, 0.4f, 0.4f,  60.0f }
+	};
+
+	const Uniform<Material> material[] = { &color[0], &color[1] };
 
 	// タイマーを0に設定
 	glfwSetTime(0.0);
@@ -144,6 +164,7 @@ int main() {
 		glUseProgram(program);
 
 		// 透視投影変換行列を求める
+
 		const GLfloat* const size(window.getSize());
 		// const GLfloat scale(window.getScaleWorldToDev() * 2.0f);
 		// const GLfloat w(size[0] / scale), h(size[1] / scale);
@@ -188,8 +209,14 @@ int main() {
 		glUniformMatrix4fv(modelViewLocation, 1, GL_FALSE, modelView.data());
 		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, projection.data());
 		glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, normalMatrix);
-
+		for (int i = 0; i < Lcount; ++i) {
+			glUniform4fv(LposLocation + i, 1, (view * Lpos[i]).data());
+		}
+		glUniform3fv(LambLocation, Lcount, Lamb);
+		glUniform3fv(LdiffLocation, Lcount, Ldiff);
+		glUniform3fv(LspecLocation, Lcount, Lspec);
 		// ここで描画処理
+		material[0].select();
 		shapePtr->draw();
 		
 		// 2つ目のモデルビュー行列を作成
@@ -202,6 +229,7 @@ int main() {
 		glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, normalMatrix);
 		
 		// 2つめのShapeの描画
+		material[1].select();
 		shapePtr->draw();
 
 		window.swapBuffers();

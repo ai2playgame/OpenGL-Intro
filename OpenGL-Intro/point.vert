@@ -2,21 +2,36 @@
 uniform mat4 modelView;
 uniform mat4 projection;
 uniform mat3 normalMatrix;
-// 光源座標
-const vec4 Lpos = vec4(0.0, 0.0, 5.0, 1.0);
-// 拡散反射光成分
-const vec3 Ldiff = vec3(1.0);
-// 拡散反射係数
-const vec3 Kdiff = vec3(0.6, 0.6, 0.2);
+const int Lcount = 2;
+uniform vec4 Lpos[Lcount];
+uniform vec3 Lamb[Lcount];
+uniform vec3 Ldiff[Lcount];
+uniform vec3 Lspec[Lcount];
+layout (std140) uniform Material
+{
+  vec3 Kamb;
+  vec3 Kdiff;
+  vec3 Kspec;
+  float Kshi;
+};
 in vec4 position;
 in vec3 normal;
 out vec3 Idiff;
-
-void main() 
+out vec3 Ispec;
+void main()
 {
-	vec4 P = modelView * position;
-	vec3 N = normalize(normalMatrix * normal);
-	vec3 L = normalize((Lpos * P.w - P * Lpos.w).xyz);
-	Idiff = max(dot(N, L), 0.0) * Kdiff * Ldiff;
-	gl_Position = projection * P;
+  vec4 P = modelView * position;
+  vec3 N = normalize(normalMatrix * normal);
+  vec3 V = -normalize(P.xyz);
+  Idiff = vec3(0.0);
+  Ispec = vec3(0.0);
+  for (int i = 0; i < Lcount; ++i)
+  {
+    vec3 L = normalize((Lpos[i] * P.w - P * Lpos[i].w).xyz);
+    vec3 Iamb = Kamb * Lamb[i];
+    Idiff += max(dot(N, L), 0.0) * Kdiff * Ldiff[i] + Iamb;
+    vec3 H = normalize(L + V);
+    Ispec += pow(max(dot(N, H), 0.0), Kshi) * Kspec * Lspec[i];
+  }
+  gl_Position = projection * P;
 }
